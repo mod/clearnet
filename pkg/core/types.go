@@ -1,11 +1,12 @@
 package core
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 // State represents the snapshot of a ledger entry
@@ -34,9 +35,8 @@ func (s *State) Hash() string {
 		strings.Join(s.Participants, ","),
 	)
 
-	hasher := sha256.New()
-	hasher.Write([]byte(raw))
-	return hex.EncodeToString(hasher.Sum(nil))
+	hash := crypto.Keccak256([]byte(raw))
+	return hex.EncodeToString(hash)
 }
 
 // Clone creates a deep copy of the state

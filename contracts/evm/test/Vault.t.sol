@@ -225,4 +225,62 @@ contract VaultTest is Test {
         vm.expectRevert("Challenge period not expired");
         vault.withdraw(state);
     }
+
+    function test_InvalidSignatures() public {
+        uint256 depositAmount = 100 ether;
+        vm.prank(alice);
+        vault.deposit(alice, address(token), depositAmount);
+
+        // Create random keys
+        uint256[] memory randomPks = new uint256[](3);
+        randomPks[0] = 0xBAD1;
+        randomPks[1] = 0xBAD2;
+        randomPks[2] = 0xBAD3;
+
+        address[] memory randomNodes = new address[](3);
+        randomNodes[0] = vm.addr(randomPks[0]);
+        randomNodes[1] = vm.addr(randomPks[1]);
+        randomNodes[2] = vm.addr(randomPks[2]);
+
+        State memory state = State({
+            wallet: alice,
+            token: address(token),
+            height: 2,
+            balance: 20 ether,
+            participants: randomNodes,
+            sigs: new bytes[](0)
+        });
+        
+        // Sign with random keys
+        state.sigs = _signState(state, randomPks);
+
+        vm.prank(alice);
+        vm.expectRevert("Unauthorized participant");
+        vault.request(state, 20 ether);
+    }
+
+    function test_NodeRemoval() public {
+        uint256 depositAmount = 100 ether;
+        vm.prank(alice);
+        vault.deposit(alice, address(token), depositAmount);
+
+        State memory state = State({
+            wallet: alice,
+            token: address(token),
+            height: 2,
+            balance: 20 ether,
+            participants: nodes,
+            sigs: new bytes[](0)
+        });
+        state.sigs = _signState(state, nodePks);
+
+        // Remove a node
+        address nodeToRemove = nodes[0];
+        vm.prank(vault.owner());
+        vault.setNodeStatus(nodeToRemove, false);
+
+        vm.prank(alice);
+        vm.expectRevert("Unauthorized participant");
+        vault.request(state, 20 ether);
+    }
 }

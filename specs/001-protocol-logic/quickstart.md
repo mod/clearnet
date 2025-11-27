@@ -31,9 +31,9 @@ forge install
 forge test --match-contract VaultTest -vv
 
 # Test specific flows
-forge test --match-test test_Deposit -vv
-forge test --match-test test_RequestWithdrawal -vv
-forge test --match-test test_ChallengeFraud -vv
+forge test --match-test test_HappyCase -vv
+forge test --match-test test_FraudCase -vv
+forge test --match-test test_InvalidSignatures -vv
 ```
 
 ### Contract Deployment

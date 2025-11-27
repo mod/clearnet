@@ -16,6 +16,7 @@ type VaultContract struct {
 	balances        map[string]*big.Int    // On-chain balance (custody)
 	pendingRequests map[string]*core.State // Wallet -> Requested State
 	requestTime     map[string]time.Time
+	nodeRegistry    map[string]bool // Authorized nodes
 
 	eventBus    chan ports.BlockchainEvent
 	subscribers []chan ports.BlockchainEvent
@@ -28,6 +29,7 @@ func NewVaultContract(challengePeriod time.Duration) *VaultContract {
 		balances:        make(map[string]*big.Int),
 		pendingRequests: make(map[string]*core.State),
 		requestTime:     make(map[string]time.Time),
+		nodeRegistry:    make(map[string]bool),
 		eventBus:        make(chan ports.BlockchainEvent, 100), // Buffered
 		ChallengePeriod: challengePeriod,
 	}
@@ -61,6 +63,13 @@ func (vc *VaultContract) Subscribe() <-chan ports.BlockchainEvent {
 	return ch
 }
 
+func (vc *VaultContract) AddNode(nodeID string) {
+	vc.mu.Lock()
+	defer vc.mu.Unlock()
+	vc.nodeRegistry[nodeID] = true
+	fmt.Printf("[Blockchain] Node Added: %s\n", nodeID)
+}
+
 func (vc *VaultContract) Deposit(wallet, token string, amount *big.Int) error {
 	vc.mu.Lock()
 	defer vc.mu.Unlock()
@@ -90,8 +99,15 @@ func (vc *VaultContract) RequestWithdrawal(state *core.State) error {
 	vc.mu.Lock()
 	defer vc.mu.Unlock()
 
-	// In reality, we'd verify signatures on-chain here.
-	// For mock, we accept it.
+	// Verify signatures (Registry check)
+	if len(state.Participants) == 0 {
+		return errors.New("no participants")
+	}
+	for _, p := range state.Participants {
+		if !vc.nodeRegistry[p] {
+			return fmt.Errorf("unauthorized participant: %s", p)
+		}
+	}
 
 	vc.pendingRequests[state.Wallet] = state
 	vc.requestTime[state.Wallet] = time.Now()
@@ -109,6 +125,13 @@ func (vc *VaultContract) RequestWithdrawal(state *core.State) error {
 func (vc *VaultContract) Challenge(candidate *core.State, challengerID string) error {
 	vc.mu.Lock()
 	defer vc.mu.Unlock()
+
+	// Verify signatures (Registry check)
+	for _, p := range candidate.Participants {
+		if !vc.nodeRegistry[p] {
+			return fmt.Errorf("unauthorized participant: %s", p)
+		}
+	}
 
 	pending, exists := vc.pendingRequests[candidate.Wallet]
 	if !exists {

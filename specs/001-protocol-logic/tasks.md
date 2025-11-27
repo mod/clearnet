@@ -21,9 +21,9 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Initialize Foundry project in contracts/evm
-- [ ] T002 [P] Configure Go simulation environment in cmd/demo/main.go
-- [ ] T003 [P] Create initial interfaces/IDeposit.sol and interfaces/IWithdraw.sol in contracts/evm/src/interfaces/
+- [x] T001 Initialize Foundry project in contracts/evm
+- [x] T002 [P] Configure Go simulation environment in cmd/demo/main.go
+- [x] T003 [P] Create initial interfaces/IDeposit.sol and interfaces/IWithdraw.sol in contracts/evm/src/interfaces/
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
@@ -31,11 +31,11 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Implement State struct and hashing helpers in contracts/evm/src/libraries/StateUtils.sol
-- [ ] T005 [P] Implement corresponding State struct and hash logic in Go for simulation (pkg/core/types.go or similar)
-- [ ] T006 Create base Vault.sol contract shell with storage layout (registry, requests mappings)
-- [ ] T007 Implement NodeRegistry logic (add/remove node) in contracts/evm/src/Vault.sol
-- [ ] T008 [P] Implement MockVault struct and NodeRegistry logic in cmd/demo/main.go
+- [x] T004 Implement State struct and hashing helpers in contracts/evm/src/libraries/StateUtils.sol
+- [x] T005 [P] Implement corresponding State struct and hash logic in Go for simulation (pkg/core/types.go or similar)
+- [x] T006 Create base Vault.sol contract shell with storage layout (registry, requests mappings)
+- [x] T007 Implement NodeRegistry logic (add/remove node) in contracts/evm/src/Vault.sol
+- [x] T008 [P] Implement MockVault struct and NodeRegistry logic in cmd/demo/main.go
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -47,16 +47,16 @@ description: "Task list template for feature implementation"
 
 ### Tests for User Story 1
 
-- [ ] T009 [P] [US1] Create Foundry test file contracts/evm/test/Vault.t.sol with test_Deposit and test_RequestWithdrawal
-- [ ] T010 [P] [US1] Create Go test scenario "happy-path" in cmd/demo/main.go
+- [x] T009 [P] [US1] Create Foundry test file contracts/evm/test/Vault.t.sol with test_Deposit and test_RequestWithdrawal
+- [x] T010 [P] [US1] Create Go test scenario "happy-path" in cmd/demo/main.go
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Implement deposit() function in contracts/evm/src/Vault.sol
-- [ ] T012 [US1] Implement request() function in contracts/evm/src/Vault.sol (signature verification, storage)
-- [ ] T013 [US1] Implement withdraw() function in contracts/evm/src/Vault.sol (timelock check, transfer)
-- [ ] T014 [US1] Implement Deposit, Request, Withdraw logic in Go simulation (cmd/demo/main.go)
-- [ ] T015 [US1] Verify Happy Path scenario passes in both environments
+- [x] T011 [US1] Implement deposit() function in contracts/evm/src/Vault.sol
+- [x] T012 [US1] Implement request() function in contracts/evm/src/Vault.sol (signature verification, storage)
+- [x] T013 [US1] Implement withdraw() function in contracts/evm/src/Vault.sol (timelock check, transfer)
+- [x] T014 [US1] Implement Deposit, Request, Withdraw logic in Go simulation (cmd/demo/main.go)
+- [x] T015 [US1] Verify Happy Path scenario passes in both environments
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -68,14 +68,14 @@ description: "Task list template for feature implementation"
 
 ### Tests for User Story 2
 
-- [ ] T016 [P] [US2] Add test_ChallengeFraud to contracts/evm/test/Vault.t.sol
-- [ ] T017 [P] [US2] Add Go test scenario "fraud-challenge" in cmd/demo/main.go
+- [x] T016 [P] [US2] Add test_ChallengeFraud to contracts/evm/test/Vault.t.sol
+- [x] T017 [P] [US2] Add Go test scenario "fraud-challenge" in cmd/demo/main.go
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Implement challenge() function in contracts/evm/src/Vault.sol
-- [ ] T019 [US2] Implement Challenge logic in Go simulation (cmd/demo/main.go)
-- [ ] T020 [US2] Verify Fraud Prevention scenario passes in both environments
+- [x] T018 [US2] Implement challenge() function in contracts/evm/src/Vault.sol
+- [x] T019 [US2] Implement Challenge logic in Go simulation (cmd/demo/main.go)
+- [x] T020 [US2] Verify Fraud Prevention scenario passes in both environments
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -87,13 +87,13 @@ description: "Task list template for feature implementation"
 
 ### Tests for User Story 3
 
-- [ ] T021 [P] [US3] Add test_InvalidSignatures and test_NodeRemoval to contracts/evm/test/Vault.t.sol
+- [x] T021 [P] [US3] Add test_InvalidSignatures and test_NodeRemoval to contracts/evm/test/Vault.t.sol
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Refine signature verification in contracts/evm/src/Vault.sol to check current registry status (FR-009)
-- [ ] T023 [US3] Update Go simulation to enforce registry checks
-- [ ] T024 [US3] Verify Node Authorization logic
+- [x] T022 [US3] Refine signature verification in contracts/evm/src/Vault.sol to check current registry status (FR-009)
+- [x] T023 [US3] Update Go simulation to enforce registry checks
+- [x] T024 [US3] Verify Node Authorization logic
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -101,11 +101,10 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T025 [P] Optimize gas for challenge() function (FR-003/SC-003)
-- [ ] T026 Validate Kademlia ordering logic in signature verification
-- [ ] T027 Ensure SHA256/Keccak consistency between Go and Solidity (FR-011)
-- [ ] T028 Update quickstart.md with final test commands
-- [ ] T029 Run full simulation suite
+- [x] T026 Validate Kademlia ordering logic in signature verification
+- [x] T027 Ensure SHA256/Keccak consistency between Go and Solidity (FR-011)
+- [x] T028 Update quickstart.md with final test commands
+- [x] T029 Run full simulation suite
 
 ## Dependencies & Execution Order
 

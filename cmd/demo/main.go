@@ -27,6 +27,7 @@ func main() {
 	nodes := make([]*node.Node, NumNodes)
 	for i := 0; i < NumNodes; i++ {
 		id := fmt.Sprintf("node_%d", i)
+		chain.AddNode(id)
 		n := node.NewNode(id, chain, network)
 		n.Start()
 		nodes[i] = n
