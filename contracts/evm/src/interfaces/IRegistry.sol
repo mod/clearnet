@@ -41,7 +41,7 @@ interface IRegistry {
     event CollateralWithdrawn(address indexed operator, uint256 amount);
 
     /// @notice Emitted when the DAO updates the network protocol version.
-    event VersionUpdated(uint32 version, string url);
+    event ManifestUpdated(uint32 version, string url);
 
     // -------------------------------------------------------------------------
     // Write Functions (Node Operator)
@@ -73,7 +73,7 @@ interface IRegistry {
     /// @param version The new protocol version number.
     /// @param url The URL to the new network manifest (HTTPS or IPFS).
     /// @param checksum The SHA-256 checksum of the manifest file.
-    function updateVersion(uint32 version, string calldata url, bytes32 checksum) external;
+    function updateManifest(uint32 version, string calldata url, bytes32 checksum) external;
 
     // -------------------------------------------------------------------------
     // Read Functions
@@ -98,5 +98,5 @@ interface IRegistry {
     /// @return version The current version number.
     /// @return url The URL of the manifest file.
     /// @return checksum The SHA-256 checksum of the manifest.
-    function getVersion() external view returns (uint32 version, string memory url, bytes32 checksum);
+    function getManifest() external view returns (uint32 version, string memory url, bytes32 checksum);
 }

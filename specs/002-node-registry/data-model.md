@@ -75,13 +75,13 @@ interface IRegistry {
     function withdraw() external;
     
     // Admin
-    function updateVersion(uint32 version, string calldata url, bytes32 checksum) external;
+    function updateManifest(uint32 version, string calldata url, bytes32 checksum) external;
 
     // Read
     function getNodeById(bytes32 nodeId) external view returns (NodeRecord memory);
     function getActiveNodes(uint256 offset, uint256 limit) external view returns (NodeRecord[] memory);
     function totalActiveNodes() external view returns (uint256);
-    function getVersion() external view returns (uint32 version, string memory url, bytes32 checksum);
+    function getManifest() external view returns (uint32 version, string memory url, bytes32 checksum);
 }
 ```
 

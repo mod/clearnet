@@ -58,7 +58,7 @@ The DAO needs to update global network parameters (e.g., block time, fees, suppo
 
 **Acceptance Scenarios**:
 
-1. **Given** a valid governance proposal execution (simulated by owner call), **When** the `updateNetworkConfig` function is called with a new URL and checksum, **Then** the protocol version is incremented, and the new configuration pointer is stored.
+1. **Given** a valid governance proposal execution (simulated by owner call), **When** the `updateManifest` function is called with a new URL and checksum, **Then** the protocol version is incremented, and the new configuration pointer is stored.
 
 ### User Story 4 - Unregistration and Withdrawal (Priority: P3)
 
@@ -89,8 +89,8 @@ An operator wants to leave the network and retrieve their stake.
 - **FR-001**: The System MUST allow an address to register a node by providing a Node ID (Composite `bytes32` Hash), Domain, and Port.
 - **FR-002**: The System MUST require a stake of exactly 250,000 YELLOW tokens for registration.
 - **FR-003**: The System MUST store the Protocol Version, Manifest URL (supporting `https://` or `ipfs://`), and Manifest Checksum (SHA-256).
-- **FR-004**: The System MUST allow the DAO (authorized caller via governance role) to update the Protocol Version via `updateVersion`.
-- **FR-005**: The System MUST provide a function `getVersion` to retrieve the current Protocol Version and Manifest details.
+- **FR-004**: The System MUST allow the DAO (authorized caller via governance role) to update the Protocol Version via `updateManifest`.
+- **FR-005**: The System MUST provide a function `getManifest` to retrieve the current Protocol Version and Manifest details.
 - **FR-006**: The System MUST provide a function `getActiveNodes` to retrieve a list of registered nodes with pagination (e.g., fetch N nodes starting from index I).
     - **Constraint**: The ordering of nodes is **unstable**. When a node unregisters, the last node in the list moves to the empty slot ("swap-and-pop"). Clients MUST handle potential duplicates or skipped entries if paging during active churn.
 - **FR-007**: The System MUST provide a function `getNodeById` to look up a single node's details by its Node ID (Composite `bytes32` Hash).

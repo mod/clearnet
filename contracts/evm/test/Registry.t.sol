@@ -37,7 +37,7 @@ contract RegistryTest is Test {
     }
 
     function test_InitialState() public {
-        (uint32 version, string memory url,) = registry.getVersion();
+        (uint32 version, string memory url,) = registry.getManifest();
         assertEq(version, 0);
         assertEq(url, "");
         assertEq(registry.totalActiveNodes(), 0);
@@ -161,22 +161,22 @@ contract RegistryTest is Test {
         bytes32 checksum = keccak256("manifest");
         // Expect OpenZeppelin 5.0 custom error
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
-        registry.updateVersion(1, "https://v1", checksum);
+        registry.updateManifest(1, "https://v1", checksum);
         vm.stopPrank();
     }
 
-    event VersionUpdated(uint32 version, string url);
+    event ManifestUpdated(uint32 version, string url);
 
     function testUpdateConfig_IncrementsVersion() public {
         vm.startPrank(owner);
         bytes32 checksum = keccak256("manifest");
 
         vm.expectEmit(false, false, false, true);
-        emit VersionUpdated(1, "https://v1");
+        emit ManifestUpdated(1, "https://v1");
 
-        registry.updateVersion(1, "https://v1", checksum);
+        registry.updateManifest(1, "https://v1", checksum);
 
-        (uint32 ver, string memory url, bytes32 sum) = registry.getVersion();
+        (uint32 ver, string memory url, bytes32 sum) = registry.getManifest();
         assertEq(ver, 1);
         assertEq(url, "https://v1");
         assertEq(sum, checksum);

@@ -125,12 +125,12 @@ contract Registry is IRegistry, Ownable {
         emit CollateralWithdrawn(msg.sender, amount);
     }
 
-    function updateVersion(uint32 version, string calldata url, bytes32 checksum) external override onlyOwner {
+    function updateManifest(uint32 version, string calldata url, bytes32 checksum) external override onlyOwner {
         require(version > manifest.version, "Version must increment");
 
         manifest = NetworkManifest({version: version, url: url, checksum: checksum});
 
-        emit VersionUpdated(version, url);
+        emit ManifestUpdated(version, url);
     }
 
     // -------------------------------------------------------------------------
@@ -162,7 +162,7 @@ contract Registry is IRegistry, Ownable {
         return result;
     }
 
-    function getVersion() external view override returns (uint32 version, string memory url, bytes32 checksum) {
+    function getManifest() external view override returns (uint32 version, string memory url, bytes32 checksum) {
         return (manifest.version, manifest.url, manifest.checksum);
     }
 
