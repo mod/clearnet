@@ -7,6 +7,8 @@
 
 The Node Registry is an Ethereum smart contract serving as the central directory for all clearnet nodes. It handles node registration (requiring a 250k YELLOW token stake), node discovery (with pagination/sequential indexing), and network configuration updates managed by a DAO (via an external governor). The system must scale to support 10k+ nodes and ensures unique node IDs.
 
+**Update (Iter 1)**: This iteration focuses on the Smart Contract implementation (Solidity) and a **Mock Adapter** for the Go node to facilitate testing and development without a live chain connection. The `ethregistry` adapter (real chain integration) is deferred to a future feature.
+
 ## Technical Context
 
 **Language/Version**: Solidity 0.8.20 (Contract), Go 1.22+ (Simulation/Node Integration), TypeScript (Tests/Scripts)
@@ -58,8 +60,16 @@ pkg/
 ├── ports/
 │   └── registry.go          # Go Interface definition (IRegistry)
 └── adapters/
-    └── ethregistry/         # Ethereum adapter implementation
-        └── registry.go      # Interacts with deployed contract
+    └── mockregistry/        # In-memory mock implementation (CHANGED)
+        └── registry.go      # Mock logic
 ```
 
 **Structure Decision**: Standard "Clean Architecture" as per Constitution (Ports & Adapters).
+
+## Complexity Tracking
+
+> **Fill ONLY if Constitution Check has violations that must be justified**
+
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| N/A | N/A | N/A |

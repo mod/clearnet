@@ -1,7 +1,10 @@
 package node
 
 import (
+	"context"
+	"crypto/sha256"
 	"fmt"
+	"math/big"
 	"sync"
 
 	"github.com/mod/clearnet/pkg/core"
@@ -13,16 +16,18 @@ type Node struct {
 	store map[string]*core.State // Wallet -> State
 	mu    sync.RWMutex
 
-	chain ports.BlockchainAdapter
-	p2p   ports.P2PAdapter
+	chain    ports.BlockchainAdapter
+	p2p      ports.P2PAdapter
+	registry ports.Registry
 }
 
-func NewNode(id string, chain ports.BlockchainAdapter, p2p ports.P2PAdapter) *Node {
+func NewNode(id string, chain ports.BlockchainAdapter, p2p ports.P2PAdapter, registry ports.Registry) *Node {
 	n := &Node{
-		ID:    id,
-		store: make(map[string]*core.State),
-		chain: chain,
-		p2p:   p2p,
+		ID:       id,
+		store:    make(map[string]*core.State),
+		chain:    chain,
+		p2p:      p2p,
+		registry: registry,
 	}
 	return n
 }
@@ -34,6 +39,20 @@ func (n *Node) Start() {
 	// Subscribe to Blockchain events
 	events := n.chain.Subscribe()
 	go n.handleBlockchainEvents(events)
+
+	// Register with Node Registry
+	// Generate a mock [32]byte ID from string ID
+	var nodeID [32]byte
+	hash := sha256.Sum256([]byte(n.ID))
+	copy(nodeID[:], hash[:])
+
+	// Mock stake
+	stake := big.NewInt(250000)
+	
+	err := n.registry.Register(context.Background(), nodeID, "localhost", 9000, stake)
+	if err != nil {
+		fmt.Printf("[Node %s] Failed to register: %v\n", n.ID, err)
+	}
 
 	fmt.Printf("[Node %s] Started\n", n.ID)
 }

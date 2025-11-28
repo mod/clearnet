@@ -13,6 +13,9 @@
 - Q: Can two different addresses register the same Node ID (Public Key)? → A: Option A - Strict Uniqueness; revert if ID exists.
 - Q: How does the Registry interact with the DAO for updates? → A: Option A - External Controller; Registry checks `msg.sender == governor`.
 - Q: How should pagination be implemented for 10k nodes? → A: Option A - Sequential Indexing; array/mapping+counter for O(1) access.
+- Q: What is the format for Node ID? → A: `bytes32` - A composite hash `keccak256(abi.encode("network_name", chainId, nodeAddress))` to prevent cross-chain replay.
+- Q: Is the Manifest schema defined now? → A: Option B - Defer; filetype (YAML/JSON) is defined by the `Protocol Version`.
+- Q: How to scale to 10k nodes? → A: Option A - Sequential Indexing with Swap-and-Pop (O(1) reads by index).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -26,7 +29,7 @@ A node operator wants to register their clearnet node on the network so that oth
 
 **Acceptance Scenarios**:
 
-1. **Given** an operator has at least 250,000 YELLOW tokens and has approved the Registry contract, **When** they call `register` with their Node ID (Public Key), Domain, and Port, **Then** 250,000 YELLOW tokens are transferred to the contract, and the node is added to the active list.
+1. **Given** an operator has at least 250,000 YELLOW tokens and has approved the Registry contract, **When** they call `register` with their Node ID (Composite Hash), Domain, and Port, **Then** 250,000 YELLOW tokens are transferred to the contract, and the node is added to the active list.
 2. **Given** an operator has less than 250,000 YELLOW tokens, **When** they try to register, **Then** the transaction reverts.
 3. **Given** a node is already registered, **When** they try to register again with the same address, **Then** the transaction reverts (operators must use `updateNode` to change details).
 4. **Given** a Node ID is already registered by User A, **When** User B tries to register with the same Node ID, **Then** the transaction reverts (strict uniqueness).
@@ -42,7 +45,7 @@ A new node starting up needs to find the network configuration and other peers t
 **Acceptance Scenarios**:
 
 1. **Given** a node is starting up and knows the Registry ENS name, **When** it resolves the Registry address, **Then** it successfully connects to the contract.
-2. **Given** the node has a local protocol version lower than the Registry's version, **When** it checks the Registry, **Then** it retrieves the new Manifest IPFS hash and Checksum, fetches the file from IPFS, validates the checksum, and applies the configuration.
+1. **Given** the node has a local protocol version lower than the Registry's version, **When** it checks the Registry, **Then** it retrieves the new Manifest URL and Checksum, fetches the file, validates the checksum, and applies the configuration.
 3. **Given** the node needs peers, **When** it requests the last 20 registered nodes, **Then** it receives a list of valid Node IDs and connection details.
 
 ### User Story 3 - DAO Network Configuration Update (Priority: P2)
@@ -55,7 +58,7 @@ The DAO needs to update global network parameters (e.g., block time, fees, suppo
 
 **Acceptance Scenarios**:
 
-1. **Given** a valid governance proposal execution (simulated by owner call), **When** the `updateNetworkConfig` function is called with a new IPFS hash and checksum, **Then** the protocol version is incremented, and the new configuration pointer is stored.
+1. **Given** a valid governance proposal execution (simulated by owner call), **When** the `updateNetworkConfig` function is called with a new URL and checksum, **Then** the protocol version is incremented, and the new configuration pointer is stored.
 
 ### User Story 4 - Unregistration and Withdrawal (Priority: P3)
 
@@ -83,33 +86,37 @@ An operator wants to leave the network and retrieve their stake.
 
 ### Functional Requirements
 
-- **FR-001**: The System MUST allow an address to register a node by providing a Node ID (Public Key), Domain, and Port.
+- **FR-001**: The System MUST allow an address to register a node by providing a Node ID (Composite `bytes32` Hash), Domain, and Port.
 - **FR-002**: The System MUST require a stake of exactly 250,000 YELLOW tokens for registration.
-- **FR-003**: The System MUST store the Protocol Version, Manifest IPFS Hash, and Manifest Checksum.
-- **FR-004**: The System MUST allow the DAO (authorized caller via governance role) to update the Protocol Version, Manifest Hash, and Checksum.
-- **FR-005**: The System MUST provide a function to retrieve the current Protocol Version and Manifest details.
-- **FR-006**: The System MUST provide a function to retrieve a list of registered nodes with pagination (e.g., fetch N nodes starting from index I) using sequential indexing.
-- **FR-007**: The System MUST provide a function to look up a single node's details by its Node ID (Public Key).
-- **FR-008**: The System MUST allow a registered operator to unregister, which removes them from the active list and initiates a 7-day cooldown.
-- **FR-009**: The System MUST allow an operator to withdraw their stake ONLY after the 7-day cooldown has elapsed.
+- **FR-003**: The System MUST store the Protocol Version, Manifest URL (supporting `https://` or `ipfs://`), and Manifest Checksum (SHA-256).
+- **FR-004**: The System MUST allow the DAO (authorized caller via governance role) to update the Protocol Version via `updateVersion`.
+- **FR-005**: The System MUST provide a function `getVersion` to retrieve the current Protocol Version and Manifest details.
+- **FR-006**: The System MUST provide a function `getActiveNodes` to retrieve a list of registered nodes with pagination (e.g., fetch N nodes starting from index I).
+    - **Constraint**: The ordering of nodes is **unstable**. When a node unregisters, the last node in the list moves to the empty slot ("swap-and-pop"). Clients MUST handle potential duplicates or skipped entries if paging during active churn.
+- **FR-007**: The System MUST provide a function `getNodeById` to look up a single node's details by its Node ID (Composite `bytes32` Hash).
+- **FR-008**: The System MUST allow a registered operator to unregister, which removes them from the active list and initiates a 7-day cooldown (recorded in `unlockAt`).
+    - **Effect**: Unregistration triggers a "swap-and-pop" operation, moving the last active node to the unregistered node's index to maintain a packed array.
+- **FR-009**: The System MUST allow an operator to call `withdraw` to retrieve their stake ONLY after the 7-day cooldown has elapsed.
 - **FR-010**: The System MUST support storing details for up to 10,000 active nodes.
 - **FR-011**: The System MUST provide an `updateNode` function for operators to modify Domain and Port without restaking.
 - **FR-012**: The System MUST NOT automatically slash tokens during unregistration; slashing is distinct.
-- **FR-013**: The System MUST enforce uniqueness of Node IDs; no two active registrations can share the same Public Key.
+- **FR-013**: The System MUST enforce uniqueness of Node IDs; no two active registrations can share the same Node ID.
 
 ### Key Entities
 
 - **NodeRecord**:
-    - Owner Address (Ethereum address)
-    - Node ID (Public Key - bytes or string)
-    - Connection Details (Domain, Port)
-    - Registration Timestamp
-    - Status (Active, Unregistering, Unregistered)
-    - Cooldown End Timestamp
+    - `index` (uint256): Internal tracking index
+    - `nodeId` (bytes32): Composite Hash
+    - `operator` (address): Owner Address
+    - `domain` (string): DNS/IP
+    - `port` (uint16): Port
+    - `amount` (uint256): Staked tokens
+    - `registredAt` (uint64): Registration timestamp
+    - `unlockAt` (uint64): Cooldown end timestamp (0 if active)
 - **NetworkManifest**:
-    - Protocol Version (Integer)
-    - IPFS Hash (string/bytes)
-    - Checksum (bytes32)
+    - `version` (uint32)
+    - `url` (string)
+    - `checksum` (bytes32)
 
 ## Success Criteria *(mandatory)*
 
@@ -124,5 +131,5 @@ An operator wants to leave the network and retrieve their stake.
 
 - The YELLOW token is a standard ERC20 contract.
 - The "DAO" mechanism for calling the update function is represented by an `owner` or `governor` address for the purpose of this registry spec.
-- The Manifest file format is YAML.
+- The Manifest file format (YAML, JSON, TOML) is determined by the file extension and can change between Protocol Versions.
 - ENS resolution is handled by the client (Node), the contract just lives at an address.

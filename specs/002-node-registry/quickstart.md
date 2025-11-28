@@ -1,42 +1,54 @@
-# Quickstart: Node Registry
+# Quickstart: Node Registry Feature
 
-## Prerequisites
+## Overview
 
-- Foundry installed (`forge`)
-- Go 1.22+ installed
-- Ethereum RPC URL (or use Anvil for local dev)
-- Private Key with ETH for gas and YELLOW tokens for staking
+The Node Registry is the on-chain "phonebook" for Clearnet. It allows nodes to discover peers and fetch network configuration.
 
-## Deploying the Registry (Local)
+- **Contract**: `contracts/evm/src/Registry.sol`
+- **Go Interface**: `pkg/ports/registry.go`
+- **Staking**: 250,000 YELLOW tokens required.
 
-1. Start Anvil:
-   ```bash
-   anvil
-   ```
+## Key Concepts
 
-2. Deploy Mock Token and Registry:
-   ```bash
-   cd contracts/evm
-   forge script script/DeployRegistry.s.sol --rpc-url http://127.0.0.1:8545 --broadcast
-   ```
+1. **Registration**: Staking tokens to list your node.
+   - **Input**: Node ID (bytes32 hash), Domain, Port.
+   - **Cost**: 250k YELLOW tokens (transferFrom).
+2. **Discovery**: Fetching active nodes.
+   - **Method**: `getActiveNodes(offset, limit)`
+   - **Note**: Order is UNSTABLE (Swap-and-Pop).
+3. **Manifest**: Network configuration.
+   - **Update**: Only via DAO/Owner.
+   - **Format**: URL + Checksum (SHA-256).
 
-## Registering a Node
+## Development
 
-1. Approve Tokens:
-   ```bash
-   cast send <TOKEN_ADDR> "approve(address,uint256)" <REGISTRY_ADDR> 250000000000000000000000 --private-key <KEY>
-   ```
+### Prerequisites
+- Foundry (`forge`)
+- Go 1.22+
 
-2. Register:
-   ```bash
-   cast send <REGISTRY_ADDR> "register(bytes,string,uint16)" 0x1234... "node.example.com" 9000 --private-key <KEY>
-   ```
+### Running Tests (Contract)
+```bash
+cd contracts/evm
+forge test --match-path test/Registry.t.sol
+```
 
-## Running the Simulation
-
-The Go simulation allows you to spin up a mock p2p network and verify registry interactions.
+### Running Simulation (Mock Mode)
+The simulation currently uses an in-memory Mock Registry.
 
 ```bash
-cd cmd/demo
-go run main.go --registry <REGISTRY_ADDR> --role node
+go run cmd/demo/main.go
+```
+
+## Integration Guide (for Node Operators)
+
+To interact with the registry in Go:
+
+```go
+import "clearnet/pkg/ports"
+
+// 1. Define ID
+var nodeID [32]byte = ... // Hash of your key
+
+// 2. Register
+err := registry.Register(ctx, nodeID, "my-node.com", 9000, big.NewInt(250000))
 ```
