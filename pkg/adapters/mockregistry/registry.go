@@ -81,7 +81,7 @@ func (m *MockRegistry) Register(ctx context.Context, nodeID [32]byte, domain str
 		ID:      nodeID,
 		Address: fmt.Sprintf("%s:%d", domain, port),
 	}
-	
+
 	m.nodes[idStr] = newNode
 	m.activeNodes = append(m.activeNodes, idStr)
 

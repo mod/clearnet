@@ -48,7 +48,7 @@ func (n *Node) Start() {
 
 	// Mock stake
 	stake := big.NewInt(250000)
-	
+
 	err := n.registry.Register(context.Background(), nodeID, "localhost", 9000, stake)
 	if err != nil {
 		fmt.Printf("[Node %s] Failed to register: %v\n", n.ID, err)

@@ -1,33 +1,56 @@
 # clearnet Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2025-11-27
+Auto-generated from all feature plans. Last updated: 2025-11-28
 
 ## Active Technologies
-- Solidity 0.8.20 (Contract), Go 1.22+ (Simulation/Node Integration), TypeScript (Tests/Scripts) + OpenZeppelin Contracts (ERC20, Ownable/AccessControl), Foundry (Development/Testing) (002-node-registry)
-- On-chain EVM storage (Structs, Mappings, Arrays) (002-node-registry)
 
-- Solidity 0.8.20 (EVM), Go 1.22+ (Simulation/Node) + Foundry (Forge) for EVM, Standard Go Library (001-protocol-logic)
+- **Smart Contracts**: Solidity 0.8.20, Foundry (Forge), OpenZeppelin Contracts (ERC20, Ownable, AccessControl).
+- **Backend/Node**: Go 1.22+, Standard Library.
+- **Simulation**: In-memory Go simulation (`cmd/demo`).
 
 ## Project Structure
 
 ```text
-src/
-tests/
+cmd/
+└── demo/            # Protocol simulation and integration tests
+contracts/
+└── evm/             # Solidity smart contracts (Vault, Registry)
+    ├── src/
+    └── test/
+pkg/                 # Go packages
+├── adapters/        # Interface implementations (MockRegistry, etc.)
+├── core/            # Core domain logic
+└── ports/           # Interface definitions
+specs/               # Feature specifications
 ```
 
 ## Commands
 
-# Add commands for Solidity 0.8.20 (EVM), Go 1.22+ (Simulation/Node)
+### Simulation (Go)
+
+```bash
+# Run simulation
+go run cmd/demo/main.go
+```
+
+### Smart Contracts (Foundry)
+
+```bash
+# Run all tests
+cd contracts/evm && forge test -vv
+
+# Test specific contracts
+forge test --match-contract RegistryTest
+forge test --match-contract VaultTest
+```
 
 ## Code Style
 
-Solidity 0.8.20 (EVM), Go 1.22+ (Simulation/Node): Follow standard conventions
+- **Solidity**: Standard Foundry/Solidity conventions.
+- **Go**: Standard Go conventions.
 
 ## Recent Changes
-- 002-node-registry: Added Solidity 0.8.20 (Contract), Go 1.22+ (Simulation/Node Integration), TypeScript (Tests/Scripts) + OpenZeppelin Contracts (ERC20, Ownable/AccessControl), Foundry (Development/Testing)
-- 002-node-registry: Added Solidity 0.8.20 (Contract), Go 1.22+ (Simulation/Node Integration), TypeScript (Tests/Scripts) + OpenZeppelin Contracts (ERC20, Ownable/AccessControl), Foundry (Development/Testing)
-- 002-node-registry: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
+- **002-node-registry**: Implemented `Registry.sol` for node discovery and staking (250k YELLOW tokens). Added `mockregistry` adapter in Go.
+- **001-protocol-logic**: Implemented `Vault.sol` for custody, requests, and fraud proofs. Added core `State` and `Request` types.
 
-<!-- MANUAL ADDITIONS START -->
-<!-- MANUAL ADDITIONS END -->

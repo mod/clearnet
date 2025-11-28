@@ -3,6 +3,11 @@ module github.com/mod/clearnet
 go 1.24.0
 
 require (
+	github.com/duckdb/duckdb-go/v2 v2.5.3
+	github.com/ethereum/go-ethereum v1.16.7
+)
+
+require (
 	github.com/ProjectZKM/Ziren/crates/go-runtime/zkvm_runtime v0.0.0-20251001021608-1fe7b43fc4d6 // indirect
 	github.com/apache/arrow-go/v18 v18.4.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
@@ -14,8 +19,6 @@ require (
 	github.com/duckdb/duckdb-go-bindings/windows-amd64 v0.1.23 // indirect
 	github.com/duckdb/duckdb-go/arrowmapping v0.0.26 // indirect
 	github.com/duckdb/duckdb-go/mapping v0.0.25 // indirect
-	github.com/duckdb/duckdb-go/v2 v2.5.3 // indirect
-	github.com/ethereum/go-ethereum v1.16.7 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/google/flatbuffers v25.9.23+incompatible // indirect
