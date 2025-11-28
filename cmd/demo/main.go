@@ -7,6 +7,7 @@ import (
 
 	"github.com/mod/clearnet/pkg/adapters/mockchain"
 	"github.com/mod/clearnet/pkg/adapters/mockp2p"
+	"github.com/mod/clearnet/pkg/adapters/mockregistry"
 	"github.com/mod/clearnet/pkg/core"
 	"github.com/mod/clearnet/pkg/node"
 )
@@ -22,13 +23,14 @@ func main() {
 	// 1. Setup Infrastructure
 	chain := mockchain.NewVaultContract(2 * time.Second) // 2s challenge period for demo
 	network := mockp2p.NewMockP2P()
+	registry := mockregistry.New()
 
 	// 2. Bootstrap Nodes
 	nodes := make([]*node.Node, NumNodes)
 	for i := 0; i < NumNodes; i++ {
 		id := fmt.Sprintf("node_%d", i)
 		chain.AddNode(id)
-		n := node.NewNode(id, chain, network)
+		n := node.NewNode(id, chain, network, registry)
 		n.Start()
 		nodes[i] = n
 	}

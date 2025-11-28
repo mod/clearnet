@@ -75,10 +75,7 @@ contract Vault is IDeposit, IWithdraw {
         uint256 expiration = block.timestamp + CHALLENGE_PERIOD;
 
         requests[msg.sender] = WithdrawalRequestData({
-            amount: amount,
-            expiration: expiration,
-            height: candidate.height,
-            token: candidate.token
+            amount: amount, expiration: expiration, height: candidate.height, token: candidate.token
         });
 
         // The interface defines `event Challenged(address indexed wallet, State state, uint256 expiration);`
@@ -91,8 +88,8 @@ contract Vault is IDeposit, IWithdraw {
         WithdrawalRequestData memory req = requests[candidate.wallet];
         require(req.expiration > 0, "No pending request");
         require(candidate.height > req.height, "Candidate state not newer");
-        require(candidate.wallet == msg.sender || isNode[msg.sender], "Only owner or node can challenge"); 
-        // Actually, usually ONLY Nodes challenge. But maybe the user can self-correct? 
+        require(candidate.wallet == msg.sender || isNode[msg.sender], "Only owner or node can challenge");
+        // Actually, usually ONLY Nodes challenge. But maybe the user can self-correct?
         // README: "A Node detects the discrepancy... It calls challenge()"
         // I'll allow nodes.
 
@@ -101,7 +98,7 @@ contract Vault is IDeposit, IWithdraw {
 
         // Valid challenge: Cancel the withdrawal
         emit Rejected(candidate.wallet, req.token, req.amount);
-        
+
         delete requests[candidate.wallet];
     }
 
@@ -111,12 +108,12 @@ contract Vault is IDeposit, IWithdraw {
         require(block.timestamp >= req.expiration, "Challenge period not expired");
         require(finalize.height == req.height, "State mismatch");
 
-        // Verify signatures again? 
+        // Verify signatures again?
         // Not strictly necessary if we trusted it at `request` and no challenge occurred.
         // But `finalize` passed as calldata might differ from what was requested if we only stored hash?
         // We stored `height`. We trust `req.amount`.
         // We assume `finalize` matches the `request` state.
-        
+
         uint256 amount = req.amount;
         address token = req.token;
         address payable recipient = payable(finalize.wallet);
@@ -125,7 +122,7 @@ contract Vault is IDeposit, IWithdraw {
         delete requests[finalize.wallet];
 
         if (token == address(0)) {
-            (bool success, ) = recipient.call{value: amount}("");
+            (bool success,) = recipient.call{value: amount}("");
             require(success, "ETH transfer failed");
         } else {
             bool success = IERC20(token).transfer(recipient, amount);
@@ -140,32 +137,27 @@ contract Vault is IDeposit, IWithdraw {
     function _verifyStateSignatures(State calldata state) internal view {
         // 1. Reconstruct State Hash
         // keccak256(abi.encode(wallet, token, height, balance, participants));
-        bytes32 stateHash = keccak256(abi.encode(
-            state.wallet,
-            state.token,
-            state.height,
-            state.balance,
-            state.participants
-        ));
+        bytes32 stateHash =
+            keccak256(abi.encode(state.wallet, state.token, state.height, state.balance, state.participants));
 
         // 2. ECDSA Prefix
         bytes32 signedHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", stateHash));
 
         // 3. Check Quorum
-        // We assume `sigs` aligns with `participants`? 
+        // We assume `sigs` aligns with `participants`?
         // Or `sigs` is just a list of signatures from ANY participants?
         // Struct: `address[] participants; bytes[] sigs;`
         // Usually implies 1-to-1 or logic to map them.
         // "A valid State requires a specific quorum... to be considered authoritative."
         // For simplicity: We require `sigs.length == participants.length` and each `sigs[i]` corresponds to `participants[i]`.
         // AND we require that a sufficient number of participants are valid Nodes.
-        
+
         require(state.sigs.length == state.participants.length, "Sig length mismatch");
         require(state.participants.length > 0, "No participants");
 
-        // We require ALL listed participants to have signed? 
+        // We require ALL listed participants to have signed?
         // Or just that the signatures provided are valid for the listed participants?
-        // The README says "participants: List of nodes forming the quorum". 
+        // The README says "participants: List of nodes forming the quorum".
         // So we verify all of them.
 
         for (uint256 i = 0; i < state.participants.length; i++) {

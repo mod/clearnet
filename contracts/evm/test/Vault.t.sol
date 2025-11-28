@@ -61,7 +61,7 @@ contract VaultTest is Test {
 
     uint256 public alicePk = 0xA11CE;
     address public alice;
-    
+
     uint256 public bobPk = 0xB0B;
     address public bob;
 
@@ -77,7 +77,7 @@ contract VaultTest is Test {
         bob = vm.addr(bobPk);
 
         // Setup Nodes (Quorum of 3)
-        for (uint i = 1; i <= 3; i++) {
+        for (uint256 i = 1; i <= 3; i++) {
             uint256 pk = 0x100 + i;
             nodePks.push(pk);
             address node = vm.addr(pk);
@@ -92,24 +92,19 @@ contract VaultTest is Test {
         // Approve Vault
         vm.prank(alice);
         token.approve(address(vault), type(uint256).max);
-        
+
         vm.prank(bob);
         token.approve(address(vault), type(uint256).max);
     }
 
     function _signState(State memory state, uint256[] memory pks) internal returns (bytes[] memory) {
-        bytes32 stateHash = keccak256(abi.encode(
-            state.wallet,
-            state.token,
-            state.height,
-            state.balance,
-            state.participants
-        ));
-        
+        bytes32 stateHash =
+            keccak256(abi.encode(state.wallet, state.token, state.height, state.balance, state.participants));
+
         bytes32 digest = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", stateHash));
 
         bytes[] memory sigs = new bytes[](pks.length);
-        for (uint i = 0; i < pks.length; i++) {
+        for (uint256 i = 0; i < pks.length; i++) {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(pks[i], digest);
             sigs[i] = abi.encodePacked(r, s, v);
         }
@@ -118,14 +113,14 @@ contract VaultTest is Test {
 
     function test_HappyCase() public {
         uint256 depositAmount = 100 ether;
-        
+
         // 1. Deposit
         vm.prank(alice);
         vault.deposit(alice, address(token), depositAmount);
 
         // 2. Off-chain state transition (Alice spends 80, keeps 20)
         uint256 withdrawAmount = 20 ether;
-        
+
         State memory state = State({
             wallet: alice,
             token: address(token),
@@ -163,7 +158,7 @@ contract VaultTest is Test {
 
         // 2. Bob tries to withdraw with OLD state (Version 1, Balance 100)
         // Even though real state might be Version 2, Balance 50.
-        
+
         State memory oldState = State({
             wallet: bob,
             token: address(token),
@@ -180,12 +175,7 @@ contract VaultTest is Test {
         // 3. Challenge! (Node detects fraud)
         // Real state: Version 2, Balance 50
         State memory newState = State({
-            wallet: bob,
-            token: address(token),
-            height: 2,
-            balance: 50 ether,
-            participants: nodes,
-            sigs: new bytes[](0)
+            wallet: bob, token: address(token), height: 2, balance: 50 ether, participants: nodes, sigs: new bytes[](0)
         });
         newState.sigs = _signState(newState, nodePks);
 
@@ -195,15 +185,15 @@ contract VaultTest is Test {
 
         // 4. Try to withdraw (Should fail)
         vm.warp(block.timestamp + 10 minutes + 1 seconds);
-        
+
         vm.prank(bob);
         vm.expectRevert("No pending request");
         vault.withdraw(oldState);
     }
 
     function test_CannotWithdrawDuringChallengePeriod() public {
-         uint256 depositAmount = 100 ether;
-        
+        uint256 depositAmount = 100 ether;
+
         vm.prank(alice);
         vault.deposit(alice, address(token), depositAmount);
 
@@ -250,7 +240,7 @@ contract VaultTest is Test {
             participants: randomNodes,
             sigs: new bytes[](0)
         });
-        
+
         // Sign with random keys
         state.sigs = _signState(state, randomPks);
 
